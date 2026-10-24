@@ -1,0 +1,392 @@
+# Starship prompt of the ix/base image: Andrew's own ~/.config/starship.toml, copied 1:1 (2026-10-09, coordinator request)
+# except custom.claude, whose `when` was nu and is now POSIX sh with the same logic (set-ness of the variables), and
+# [hostname], which names the VM in every session (see there).
+# Loaded by nix/modules/guest/ix-terminal.nix, whose starship_prompt_check.py renders it at image build time.
+format = "${custom.submodule_chain}$username$hostname$localip$directory${custom.physical_dir}$git_branch$git_status$all$line_break$character"
+
+[aws]
+disabled = true
+symbol = " "
+
+[azure]
+symbol = " "
+
+[battery]
+charging_symbol = "󰂄 "
+discharging_symbol = "󰂃 "
+empty_symbol = "󰂎 "
+full_symbol = "󰁹 "
+unknown_symbol = "󰂑 "
+
+[buf]
+disabled = true
+symbol = " "
+
+[bun]
+disabled = true
+symbol = " "
+
+[c]
+symbol = " "
+
+[cmake]
+symbol = " "
+
+[cobol]
+symbol = " "
+
+[conda]
+symbol = " "
+
+[container]
+symbol = " "
+
+[cpp]
+symbol = " "
+
+[crystal]
+symbol = " "
+
+[custom.claude]
+command = "echo 🤖"
+description = "Shows when in a Claude Code session"
+format = "[$output]($style) "
+style = "bold blue"
+shell = ["sh", "-c"]
+when = '''[ -n "${CLAUDE_CODE+x}" ] || [ -n "${CLAUDE_SESSION+x}" ]'''
+
+[custom.commit_age]
+command = "git log -1 --format=%cr 2>/dev/null"
+description = "Relative time since the latest commit"
+format = "([$output]($style) )"
+ignore_timeout = true
+require_repo = true
+shell = ["sh", "-c"]
+style = "italic dimmed"
+use_stdin = false
+when = true
+
+[custom.physical_dir]
+command = "pwd -P"
+description = "Physical path when the cwd is reached through a symlink"
+format = "[($output)]($style) "
+ignore_timeout = true
+shell = ["sh", "-c"]
+style = "dimmed"
+use_stdin = false
+when = '[ "$PWD" != "$(pwd -P)" ]'
+
+[custom.submodule_chain]
+command = 'sup=$(git rev-parse --show-superproject-working-tree 2>/dev/null); names=""; while [ -n "$sup" ]; do b=$(basename "$sup"); if [ -z "$names" ]; then names="$b"; else names="$b › $names"; fi; sup=$(git -C "$sup" rev-parse --show-superproject-working-tree 2>/dev/null); done; printf "%s" "$names"'
+description = "Breadcrumb of git superproject repos when inside a submodule"
+format = "([$output ›]($style) )"
+ignore_timeout = true
+require_repo = true
+shell = ["sh", "-c"]
+style = "dimmed"
+use_stdin = false
+when = true
+
+[dart]
+symbol = " "
+
+[deno]
+symbol = " "
+
+[directory.substitutions]
+"~/Projects/" = ""
+
+[direnv]
+allowed_msg = ""
+denied_msg = "✗"
+disabled = true
+format = "[$symbol$loaded]($style) "
+loaded_msg = "󰒓"
+not_allowed_msg = "!"
+style = "bold green"
+symbol = " "
+unloaded_msg = ""
+
+[docker_context]
+symbol = " "
+
+[dotnet]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[erlang]
+symbol = " "
+
+[fennel]
+symbol = " "
+
+[fortran]
+symbol = " "
+
+[fossil_branch]
+symbol = " "
+
+[gcloud]
+disabled = true
+symbol = "󱇶 "
+
+[git_branch]
+symbol = " "
+
+[git_commit]
+disabled = true
+format = "[( $tag )]($style)"
+only_detached = false
+tag_disabled = false
+tag_symbol = ""
+
+[gleam]
+symbol = " "
+
+[golang]
+symbol = " "
+
+[gradle]
+symbol = " "
+
+[guix_shell]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[haxe]
+symbol = " "
+
+[helm]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+# The node agent sets the guest's kernel hostname to the VM's ix name on every start (node-agent start/boot.rs
+# clone_hostname), so this shows `creative-wasp ~`. `ix shell` is not SSH, so with the default ssh_only the module never
+# showed. The hostname takes no " in " connector; a root session still reads `root in creative-wasp ~` (username module).
+[hostname]
+format = "[$ssh_symbol$hostname]($style) "
+ssh_only = false
+style = "dimmed purple"
+ssh_symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[kotlin]
+symbol = " "
+
+[kubernetes]
+symbol = "󱃾 "
+
+[lua]
+symbol = " "
+
+[maven]
+symbol = " "
+
+[memory_usage]
+disabled = false
+format = "via $symbol[$ram( | $swap)]($style) "
+style = "bold dimmed green"
+symbol = "󰍛 "
+threshold = 95
+
+[meson]
+symbol = "󰔷 "
+
+[mojo]
+symbol = "󰈸 "
+
+[nats]
+symbol = " "
+
+[netns]
+symbol = "󰛳 "
+
+[nim]
+symbol = " "
+
+[nix_shell]
+disabled = true
+format = "[$symbol]($style)"
+symbol = " "
+
+[nodejs]
+disabled = true
+symbol = " "
+
+[ocaml]
+symbol = " "
+
+[odin]
+symbol = "󰟢 "
+
+[opa]
+symbol = " "
+
+[openstack]
+symbol = " "
+
+[os.symbols]
+AIX = " "
+ALTLinux = " "
+AOSC = " "
+AlmaLinux = " "
+Alpaquita = " "
+Alpine = " "
+Amazon = " "
+Android = " "
+Arch = " "
+Artix = " "
+Bluefin = " "
+CachyOS = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Elementary = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = " "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = " "
+InstantOS = " "
+Ios = "󰀷 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = " "
+OpenCloudOS = " "
+OracleLinux = "󰺡 "
+PikaOS = " "
+Pop = " "
+Raspbian = " "
+RedHatEnterprise = "󱄛 "
+Redhat = "󱄛 "
+Redox = "󰀘 "
+RockyLinux = " "
+SUSE = " "
+Solus = " "
+Ubuntu = " "
+Ultramarine = " "
+Unknown = " "
+Uos = " "
+Void = " "
+Windows = "󰍲 "
+Zorin = " "
+openEuler = " "
+openSUSE = " "
+
+[package]
+disabled = true
+symbol = "󰏗 "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[pijul_channel]
+symbol = " "
+
+[pixi]
+symbol = "󰏗 "
+
+[pulumi]
+symbol = " "
+
+[purescript]
+symbol = " "
+
+[python]
+disabled = true
+symbol = " "
+
+[raku]
+symbol = "󱖊 "
+
+[red]
+symbol = "󱍼 "
+
+[rlang]
+symbol = "󰟔 "
+
+[ruby]
+symbol = " "
+
+[rust]
+disabled = true
+symbol = "󱘗 "
+
+[scala]
+symbol = " "
+
+[shell]
+disabled = false
+fish_indicator = ""
+format = "[$indicator]($style)"
+nu_indicator = ""
+
+[shlvl]
+symbol = "󰹍 "
+
+[singularity]
+symbol = " "
+
+[solidity]
+symbol = " "
+
+[spack]
+symbol = " "
+
+[status]
+symbol = " "
+
+[sudo]
+symbol = " "
+
+[swift]
+disabled = true
+symbol = " "
+
+[terraform]
+symbol = " "
+
+[typst]
+disabled = true
+symbol = " "
+
+[vagrant]
+symbol = " "
+
+[vlang]
+symbol = " "
+
+[xmake]
+symbol = " "
+
+[zig]
+symbol = " "

@@ -1,0 +1,12 @@
+ix image
+Copyright 2026 Indexable, Inc.
+
+This product includes software developed at Indexable, Inc., licensed under
+the Apache License, Version 2.0 (LICENSE).
+
+The image this repository describes composes third-party software, including
+nixpkgs, the Linux kernel and the packages the modules install. Each keeps its
+own license; this repository's license covers only the files in it.
+
+"ix" and "Indexable" are trademarks of Indexable, Inc. The Apache License
+does not grant permission to use them (section 6, Trademarks).
