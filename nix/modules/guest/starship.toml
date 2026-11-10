@@ -169,8 +169,8 @@ symbol = " "
 [hg_branch]
 symbol = " "
 
-# The node agent sets the guest's kernel hostname to the VM's ix name on every start (node-agent start/boot.rs
-# clone_hostname), so this shows `creative-wasp ~`. `ix shell` is not SSH, so with the default ssh_only the module never
+# The node agent sets the guest's kernel hostname to the VM's ix name on every start (node-agent vm_manager/helpers.rs
+# guest_hostname), so this shows `creative-wasp ~`. `ix shell` is not SSH, so with the default ssh_only the module never
 # showed. The hostname takes no " in " connector; a root session still reads `root in creative-wasp ~` (username module).
 [hostname]
 format = "[$ssh_symbol$hostname]($style) "

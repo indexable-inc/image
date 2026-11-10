@@ -1,38 +1,41 @@
 # Agent CLIs on ix/base
 
-`claude` and `codex` in ix/base start without permission prompts. The VM is the sandbox. These are defaults, not locked policy, so you can turn them off in your own config.
+`claude` and `codex` on ix/base start without permission prompts because the VM is the sandbox. These are defaults you can turn off.
 
-Bypass means the agent runs anything the session user can, with no prompt. On ix/base that user (`ix`) has passwordless `sudo` and can read every secret the VM is granted with `ix-secrets get`. It can also read the sign-in tokens the CLIs store once you sign in, `~/.claude/.credentials.json` for Claude Code and `~/.codex/auth.json` for Codex. A prompt injection in a page or repo the agent reads can use all of it. So grant a VM only the secrets its agent should be able to send anywhere, and don't snapshot, fork or share a VM you signed in on, because the tokens go with it.
+Bypass means the agent can do anything the session user can. On ix/base that user (`ix`) has passwordless `sudo`, can read every secret granted to the VM with `ix-secrets get`, and can read the CLIs' stored sign-in tokens (`~/.claude/.credentials.json`, `~/.codex/auth.json`). A prompt injection can use all of it. Grant a VM only secrets its agent may send anywhere, and don't snapshot, fork or share a VM you signed in on, because the tokens go with it.
 
 ## Claude Code
 
-The image presets no Claude credential. Sign in with `/login`, which the footer of a first run points at ("Not logged in · Run /login").
+No credential is preset; sign in with `/login`.
 
-A first run skips Claude Code's setup screens. When a non-root user has no `~/.claude.json` (or `$CLAUDE_CONFIG_DIR/.claude.json`), the wrapper writes one that marks onboarding done, picks the dark theme, and trusts `$HOME`. So `claude` in `$HOME` opens straight into the REPL in about 1.3 s; the theme picker, the security notes and the folder-trust dialog never show. Change the theme with `/theme`. Claude Code never updates itself here, because the image pins its version and sets `DISABLE_AUTOUPDATER=1`.
+When a non-root user has no `~/.claude.json` (or `$CLAUDE_CONFIG_DIR/.claude.json`), the wrapper writes one that marks onboarding done, picks the dark theme and trusts `$HOME`, so `claude` opens straight into the REPL. Trusting `$HOME` trusts every non-git directory under it, so a `.claude/settings.json` there runs its hooks without asking; a git clone still asks once. To get the trust dialog back, delete your home directory's entry under `projects` in `~/.claude.json`. The image pins the version and sets `DISABLE_AUTOUPDATER=1`.
 
-Trusting `$HOME` also trusts every directory under it that isn't a git repository, so a `.claude/settings.json` in one of those runs its hooks without asking. A git clone still asks for trust once. Claude Code itself never saves trust for `$HOME`; the image does because the VM is the sandbox and bypass mode already lets the agent run anything as you. To get the dialog back, delete your home directory's entry under `projects` in `~/.claude.json`; the wrapper doesn't touch a file that exists. The first session in a new directory may also offer to make auto mode your default; "No, keep bypass permissions" keeps the image's default.
-
-When a non-root user has no `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`), the wrapper also copies `/etc/ix/claude-user-settings.json` there first:
+When a non-root user has no `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`), the wrapper copies `/etc/ix/claude-user-settings.json` there:
 
 ```json
-{"permissions": {"defaultMode": "bypassPermissions"}, "skipDangerousModePermissionPrompt": true}
+{
+  "permissions": {"defaultMode": "bypassPermissions"},
+  "skipDangerousModePermissionPrompt": true,
+  "tui": "fullscreen",
+  "env": {"CLAUDE_CODE_NATIVE_CURSOR": "1"}
+}
 ```
 
-So `claude` behaves like `claude --dangerously-skip-permissions` and skips the one-time "Bypass Permissions mode" warning. After the copy both files are yours. The wrapper never rewrites them, and it leaves an existing file or symlink alone.
+`CLAUDE_CODE_NATIVE_CURSOR` shows your terminal's own cursor; without it Claude Code paints a block unless a per-account feature flag says otherwise, and a fresh VM has fetched no flags. `/tui default` switches back to the classic renderer. The wrapper never rewrites either file once it exists.
 
-To get permission prompts back, set the mode in `~/.claude/settings.json`:
+To get prompts back, set this in `~/.claude/settings.json` (deleting the file does not work, the next run copies it again):
 
 ```json
 {"permissions": {"defaultMode": "default"}}
 ```
 
-Deleting the file doesn't work, because the next `claude` copies the defaults again. For one session, run `claude --permission-mode default`.
+For one session, run `claude --permission-mode default`.
 
-Root gets neither file. Claude Code refuses `bypassPermissions` as root ("cannot be used with root/sudo privileges") and exits 1. Its source checks one escape, `IS_SANDBOX=1`, which Anthropic doesn't document. So a one-off `ix shell <vm> --noninteractive -- claude ...`, which runs as root with `HOME=/root`, starts in the normal prompting mode. An interactive `ix shell` is the `ix` user and gets bypass. A root shell that keeps a non-root user's `HOME` (`sudo -E claude`) reads that user's bypass file and exits 1. Run `claude --permission-mode default` there, or use the `ix` user.
+Root gets neither file. Claude Code exits 1 on `bypassPermissions` as root ("cannot be used with root/sudo privileges"). So `ix shell <vm> --noninteractive -- claude ...`, which runs as root with `HOME=/root`, starts in prompting mode, while an interactive `ix shell` is the `ix` user and gets bypass. `sudo -E claude` reads the user's bypass file as root and exits 1; use `--permission-mode default` or the `ix` user.
 
 ## Codex
 
-The image presets no Codex credential either. A first `codex` opens Codex's sign-in screen, where you sign in with ChatGPT or paste an API key.
+No credential is preset; a first `codex` opens the sign-in screen.
 
 `/etc/codex/config.toml` sets:
 
@@ -45,6 +48,6 @@ check_for_update_on_startup = false
 daemon_auto_start = false
 ```
 
-The daemon setting keeps plain `codex` working. Since 0.157 Codex starts a background server by default and installs it from a full release package, which the image doesn't ship, so without this line `codex` exits with "this CLI has no complete local package". `codex agents`, `codex queue` and `codex remote-control` need that server and don't work here. The update check is off because the image pins Codex's version.
+Since 0.157 Codex starts a background server installed from a full release package the image does not ship. Without `daemon_auto_start = false`, `codex` exits with "this CLI has no complete local package". `codex agents`, `codex queue` and `codex remote-control` need that server and do not work here.
 
-Codex reads that system file below `~/.codex/config.toml`, so a value in your own file wins. Set `approval_policy = "on-request"` and `sandbox_mode = "workspace-write"` there to get prompts and the sandbox back. For one interactive run, use `codex -a on-request -s workspace-write`. Codex has no root check, so these defaults apply to root sessions too.
+Your `~/.codex/config.toml` overrides the system file. Set `approval_policy = "on-request"` and `sandbox_mode = "workspace-write"` there for prompts and the sandbox, or run `codex -a on-request -s workspace-write` once. Codex has no root check, so these defaults apply to root too.

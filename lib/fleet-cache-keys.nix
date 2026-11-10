@@ -3,11 +3,11 @@ The public keys the fleet trusts on a narinfo signature. Single source of
 truth for `nix.settings.trusted-public-keys`.
 
 Surfaces as `ix.lib.fleetCacheKeys`. Consumed by:
-  - `nix/modules/base/nix-settings.nix` — the trusted set on every host.
-  - `scripts/ci/probe-cache-plane.sh` — asserts the key the ncps cache
+  - `nix/modules/base/nix-settings.nix`: the trusted set on every host.
+  - `scripts/ci/probe-cache-plane.sh`: asserts the key the ncps cache
     actually signs with is one of these, so a regenerated ncps keypair
     reddens CI instead of turning every fleet substitution into a rebuild.
-  - `nix/base-images/shared.nix` — pairs each base-image cache with its keys;
+  - `nix/base-images/shared.nix`: pairs each base-image cache with its keys;
     the guest and runner images trust exactly the keys of the caches they read.
 
 `ncpsCurrent` is the one that matters day to day: ncps re-signs everything it
@@ -30,7 +30,7 @@ let
   ncpsLegacy = "hil-compute-1:eu2JX3qkNaxdO0/ane+bTmOIKOtR5P/quLlTHBqqIpM=";
 
   # atticd signs the `ix-public` cache server-side. Everything ix itself
-  # publishes -- and every FOD the workspace fetches -- carries this and only
+  # publishes, and every FOD the workspace fetches, carries this and only
   # this upstream signature, so a guest that does not trust it rebuilds all of
   # ix from source (ENG-10618).
   ixWorkspace = "ix-workspace:JuAaeOPfR3GL3nUICpEz/88/+S3BzGF3L6bPYFy0GwI=";
@@ -55,7 +55,7 @@ let
   # nixpkgs catalog builds). ncps fronts it as an upstream
   # (`nix/modules/services/host/cache-surface/module.nix`) because the guest
   # base image ships flox; ncps re-signs what it serves with `ncpsCurrent`, so
-  # verification would hold on that alone -- this key is here so a flox-signed
+  # verification would hold on that alone. This key is here so a flox-signed
   # path copied between nodes verifies without the ncps hop, same reason
   # `indexCachix` stays. The guest-side copy of this value lives in index
   # `lib/cache.nix` (`flox` attr); keep the two in sync. Key source:

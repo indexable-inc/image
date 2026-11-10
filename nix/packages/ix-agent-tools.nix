@@ -1,4 +1,4 @@
-# Guest developer tools for ix/base: `ix-secrets`, `claude`, `codex`. Both agent CLIs default to no
+# Guest developer tools for ix/base: `ix-secrets`, `ix-identity`, `claude`, `codex`. Both agent CLIs default to no
 # permission prompts; ./ix-agent-tools.md says how a user turns that off.
 #
 # Neither agent CLI has a preset credential: a user signs in by hand, `/login` in Claude Code and the sign-in
@@ -91,9 +91,19 @@
   # used with root/sudo privileges"), and the escape its source checks (`IS_SANDBOX=1`) is undocumented. Root gets no
   # first-run state either, so the wrapper never writes to root's home; root's sessions are one-off
   # `ix shell --noninteractive` commands, not someone at the REPL.
+  #
+  # `tui = "fullscreen"` starts the alternate-screen renderer (Andrew, 2026-10-24: "full TUI enabled by default";
+  # https://code.claude.com/docs/en/fullscreen); `/tui default` in the REPL saves the classic one over it.
+  # `CLAUDE_CODE_NATIVE_CURSOR` shows the terminal's own cursor, bar or block as the user configured it, at the
+  # caret. Without it 2.1.296 hides the cursor and paints an inverse-video block unless the GrowthBook flag
+  # `tengu_native_cursor` is cached as true in `~/.claude.json`, and a fresh VM has no cached flags (2.1.296's
+  # source; raw capture over `ix shell` 2026-10-24). The variable is undocumented but is on Claude Code's own list of
+  # settings `env` names; base-image-test pins its effect.
   claudeUserDefaults = {
     permissions.defaultMode = "bypassPermissions";
     skipDangerousModePermissionPrompt = true;
+    tui = "fullscreen";
+    env.CLAUDE_CODE_NATIVE_CURSOR = "1";
   };
   claudeUserDefaultsFile = pkgs.writeText "claude-user-settings.json" (builtins.toJSON claudeUserDefaults);
   # A first `claude` otherwise walks a theme picker, security notes and a folder-trust dialog before the REPL
@@ -168,8 +178,14 @@
     daemon_auto_start = false
   '';
 
+  # `ix-identity` is the same binary under the name its main dispatches on (crates/vm/guest/secrets-client/src/main.rs),
+  # so the guest pin and the fleet catalog stay one binary.
+  ixIdentity = pkgs.runCommand "ix-identity" {strictDeps = true;} ''
+    mkdir -p $out/bin
+    ln -s ${ixSecrets}/bin/ix-secrets $out/bin/ix-identity
+  '';
 in {
-  environment.systemPackages = [ixSecrets codex claudeSeeded];
+  environment.systemPackages = [ixSecrets ixIdentity codex claudeSeeded];
   environment.etc."ix/claude-user-settings.json".source = claudeUserDefaultsFile;
   environment.etc."codex/config.toml".text = codexSystemConfig;
 }

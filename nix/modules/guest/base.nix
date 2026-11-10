@@ -53,7 +53,7 @@ Neither list sets `nix.package`; ix sets its own Nix build beside them (nix/lib/
     (nixRoot + "/modules/guest/golden.nix")
     # Swap posture: not block-volume policy, it is what any ix guest needs.
     # The base image declares no `zramSwap` options at all, which is exactly
-    # how it asks for the platform defaults -- the module reads intent from
+    # how it asks for the platform defaults: the module reads intent from
     # whether a definition EXISTS, so saying nothing here is the declaration.
     (repoRoot + "/crates/control/image/template-profile/src/ix-guest-swap.nix")
     ({pkgs, ...}: import (nixRoot + "/packages/ix-agent-tools.nix") {inherit pkgs ixSecrets;})

@@ -6,13 +6,22 @@ there (btop_conf_check.py), so a stock btop fails that build.
 
 Argument: `src`, the fork's source tree. ix passes the `views/btop` Gitlink (lib/nixpkgs-overlays.nix); the public
 image mirror fetches the same revision from GitHub. Returns an overlay.
+
+The version is the one the fork's binary prints (`const string Version` in src/btop.cpp), read from `src`, since
+versionCheckHook fails the build unless `btop --version` prints $version. A tree that declares it other than once
+fails evaluation.
 */
-{src}: _: prev: {
-  btop = prev.btop.overrideAttrs {
-    version = "1.4.7-unstable-2026-10-20";
-    inherit src;
-    # The fork's binary still prints upstream's version, which
-    # versionCheckHook compares against $version.
-    preVersionCheck = "version=1.4.7";
-  };
-}
+{src}: let
+  source = "${src}/src/btop.cpp";
+  lines = builtins.filter builtins.isString (builtins.split "\n" (builtins.readFile source));
+  declared = builtins.filter (found: found != null) (map (builtins.match ''[[:space:]]*const string Version = "([^"]+)";'') lines);
+  version =
+    if builtins.length declared == 1
+    then builtins.head (builtins.head declared)
+    else throw "btop-overlay.nix: ${source} declares `const string Version = \"...\";` ${toString (builtins.length declared)} times, not once";
+in
+  _: prev: {
+    btop = prev.btop.overrideAttrs {
+      inherit src version;
+    };
+  }

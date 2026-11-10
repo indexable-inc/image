@@ -4,7 +4,7 @@
   # Both pins are ix's own: flake.lock is the matching subgraph of ix's flake.lock, written on every publish.
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flox.url = "github:flox/flox/v1.18.1";
+    flox.url = "github:flox/flox/v1.19.2";
   };
 
   outputs = {
@@ -44,7 +44,11 @@
           repoRoot = ./.;
           inherit (config.ix.base) ixSecrets ixOpen;
           flox = flox.packages.${pkgs.stdenv.hostPlatform.system}.flox;
-          blockvol = {};
+          # The layout of an ix VM's disk: root on the first virtio disk, no realtime device.
+          blockvol = {
+            rootDevice = "/dev/vda";
+            realtimeDevice = null;
+          };
         };
 
       options.ix.base = {
@@ -65,11 +69,14 @@
         };
       };
 
-      # A system built from an external `nixpkgs.pkgs` takes neither setting (NixOS rejects `nixpkgs.config` beside
-      # it); that caller applies overlays.default and allows claude-code itself (README.md).
-      config.nixpkgs = lib.mkIf (!options.nixpkgs.pkgs.isDefined) {
+      # NixOS applies nixpkgs.overlays on top of an external `nixpkgs.pkgs` too, so btop comes from the fork either
+      # way; a caller whose pkgs already carries overlays.default gets the same btop again. It rejects `nixpkgs.config`
+      # beside an external pkgs, and that caller allows claude-code itself (README.md).
+      config.nixpkgs = {
         overlays = [btopOverlay];
-        config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) ["claude-code"];
+        config = lib.mkIf (!options.nixpkgs.pkgs.isDefined) {
+          allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) ["claude-code"];
+        };
       };
     };
   };
